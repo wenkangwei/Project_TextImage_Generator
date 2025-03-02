@@ -1,2 +1,17 @@
-README.md
-testing
+# 功能需求
+前端
+[] 图片上传框
+[] 参考图选项
+[] 功能选项
+[] 多结果图展示
+[] 
+
+
+后端
+[] 接入大模型
+[] 文本生成
+[] 图片生成
+
+# 参考链接
+- 构建用户登录界面： https://blog.csdn.net/lsqingfeng/article/details/132599955
+
