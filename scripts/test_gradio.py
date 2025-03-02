@@ -44,8 +44,7 @@ class GradioApp:
 
 class GradioUnitTest():
     def __init__(self):
-        api_key =  "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"
-        # "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"
+        api_key="your-api"
         os.environ["OPENAI_API_KEY"] = api_key
         self.llm_model = ChatOpenAI(temperature=0.5, model="gpt-3.5-turbo")
         # self.llm_model= None
