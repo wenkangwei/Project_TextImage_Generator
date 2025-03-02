@@ -13,5 +13,6 @@
 - [ ] 图片生成
 
 # 参考链接
-- 构建用户登录界面： https://blog.csdn.net/lsqingfeng/article/details/132599955
-
+- gradio official doc: https://www.gradio.app/guides/connecting-to-a-database
+- gradio 构建用户登录界面： https://blog.csdn.net/lsqingfeng/article/details/132599955
+- ollama 大模型部署: https://github.com/ollama/ollama-python
