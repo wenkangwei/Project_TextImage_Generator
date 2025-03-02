@@ -2,7 +2,12 @@
 # API Reference: https://www.gradio.app/docs/,
 # https://github.com/zhayujie/chatgpt-on-wechat, https://docs.link-ai.tech/platform/api,  https://docs.link-ai.tech/api#/
 # Description: This file contains the code to run the gradio app for the movie generator.
-# Date: 2021-09-26
+# 
+#
+#
+# 参考链接： https://zhuanlan.zhihu.com/p/684798694
+#
+#
 ####################################################################################################
 
 import gradio as gr
@@ -19,8 +24,67 @@ from moviepy.editor import *
 # from movie_generator.agi.suno.suno import Suno
 import requests
 
+
+import ollama
+from ollama import chat
+from ollama import ChatResponse
+
+# ollama.pull("deepseek-r1:1.5b")
+# print( 'ollama result:',ollama.list())
+# response: ChatResponse = chat(model='deepseek-r1:1.5b', messages=[
+#   {
+#     'role': 'user',
+#     'content': 'Why is the sky blue?',
+#   },
+# ])
+# print(response['message']['content'])
+# # or access fields directly from the response object
+# print(response.message.content)
+
+def call_LLM(inputs, prompts= '你是一个时尚服装行业的专家， 请回答下面问题：', model_version = 'Qwen'):
+    inputs = prompts + ' ' + inputs
+    if model_version=="Qwen":
+        from openai import OpenAI
+
+        model_id = 'Qwen/Qwen2.5-3B-Instruct-GGUF'
+
+        client = OpenAI(
+            base_url='https://ms-fc-2ea3820b-8c19.api-inference.modelscope.cn/v1',
+            api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
+        )
+
+        response=client.chat.completions.create(
+            model=model_id,
+            messages=[{"role":"user", "content":inputs}],
+            stream=True
+        )
+
+        res= []
+        for chunk in response:
+            # print(chunk.choices[0].delta.content, end='', flush=True)
+            res.append(chunk.choices[0].delta.content)
+        return "".join(res)
+    elif model_version in ['deepseek-r1:1.5b', 'llama3.2:latest']: 
+        
+        # model= 'deepseek-r1:1.5b'
+        # model = 'llama3.2:latest'
+        response: ChatResponse = chat(model= model_version, messages=[
+        {
+            'role': 'user',
+            'content': prompts + " " + inputs,
+        },
+        ])
+        return response['message']['content']
+    else:
+        return "LLM version is not supported yet."
+
 class GradioApp:
-    def __init__(self,):
+    def __init__(self,config=None):
+        #config with info of 
+        # model version
+        # prompts
+        #others
+        self.config=config
         pass
     
     def test_image_func(self, input_image, filter_mode='sepia'):
@@ -56,8 +120,16 @@ class GradioApp:
         return model_images, cloths_images
     
     def image_module(self, mode='dress_up', title='image_module', desc=''):
+        if mode == 'dress_up':
+            # 模特试衣
+            func = self.dress_up_func
+        elif mode == 'update_model':
+            # 更新模特
+            func = self.update_model_func
+        else:
+            func = self.dress_up_func
         comp = gr.Interface(
-                fn= self.dress_up_func,
+                fn= func,
                 inputs=['image', 'image', gr.Dropdown(['sepia', 'grayscale'])],
                 outputs=["textbox",'image'],
                 title=title,
@@ -69,16 +141,26 @@ class GradioApp:
             )
         return comp
 
-    def text_module(self, title, desc):
+
+    def gen_text(self,inputs, model_version='Qwen'):
+        # 设置前置prompt做限制
+        prompts = "你是一个时尚服装行业的专家， 请回答下面问题,只罗列答案不要返回多余的词："
+        # model= 'deepseek-r1:1.5b'
+        # return call_LLM(inputs,prompts, model_version='llama3.2:latest')
+        return call_LLM(inputs,prompts, model_version=model_version)
+    
+    def text_module(self, title='文本生成', desc="AI生成关键词"):
         comp = gr.Interface(
-                fn= self.dress_up_func,
-                inputs=['textbox'],
-                outputs=["textbox",'image'],
+                fn= self.gen_text,
+                inputs=['textbox', gr.Dropdown(['deepseek-r1:1.5b', 'llama3.2:latest','Qwen'])],
+                outputs=["textbox"],
                 title=title,
                 description=desc,
                 theme="huggingface",
                 examples=[
-                    ["为什么天空是蓝色的", "生成10个衣服类目，并列出来"],
+                    ["Use one sentence tell a joy"
+                     ,"哪些款式的女装比较潮流， 请列出10个女装品类", 
+                     "生成10个衣服类目并列出来"],
                 ],
             )
         return comp
@@ -99,10 +181,10 @@ class GradioApp:
             )
         return comp
 
-def main(mode):
-    print(f"Runing Gradio Unit Test with mode: {mode}")
+def main():
+    print(f"Runing Gradio APP")
     component = GradioApp()
-    component.generate_interface(mode).launch(share=True)
+    component.generate_interface().launch(share=True)
 
 
 if __name__ == "__main__":

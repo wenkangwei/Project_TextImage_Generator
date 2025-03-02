@@ -58,18 +58,48 @@
 
 #### Ollama 本地API请求
 
-import ollama
-from ollama import chat
-from ollama import ChatResponse
+# import ollama
+# from ollama import chat
+# from ollama import ChatResponse
 
-# ollama.pull("deepseek-r1:1.5b")
-# print( 'ollama result:',ollama.list())
-response: ChatResponse = chat(model='deepseek-r1:1.5b', messages=[
-  {
-    'role': 'user',
-    'content': 'Why is the sky blue?',
-  },
-])
-print(response['message']['content'])
-# or access fields directly from the response object
-print(response.message.content)
+# # ollama.pull("deepseek-r1:1.5b")
+# # print( 'ollama result:',ollama.list())
+# # response: ChatResponse = chat(model='deepseek-r1:1.5b', messages=[
+# #   {
+# #     'role': 'user',
+# #     'content': 'Why is the sky blue?',
+# #   },
+# # ])
+
+# response: ChatResponse = chat(model='llama3.2:latest', messages=[
+#   {
+#     'role': 'user',
+#     'content': 'Use one sentence tell a joy ',
+#   },
+# ])
+# print(response['message']['content'])
+# # or access fields directly from the response object
+# # print(response.message.content)
+
+
+
+from openai import OpenAI
+
+model_id = 'Qwen/Qwen2.5-3B-Instruct-GGUF'
+
+client = OpenAI(
+    base_url='https://ms-fc-2ea3820b-8c19.api-inference.modelscope.cn/v1',
+    api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
+)
+
+response=client.chat.completions.create(
+    model=model_id,
+    messages=[{"role":"user", "content":"列出SHEIN头部热门的10个品类名称， 返回要求：只列出10个名称？"}],
+    stream=True
+)
+
+res= []
+for chunk in response:
+    # print(chunk.choices[0].delta.content, end='', flush=True)
+    res.append(chunk.choices[0].delta.content)
+print("".join(res))
