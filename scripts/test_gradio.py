@@ -46,7 +46,8 @@ class GradioUnitTest():
     def __init__(self):
         self.llm_model = ChatOpenAI(temperature=0.5, model="gpt-3.5-turbo")
         # self.llm_model= None
-        self.client = OpenAI(api_key=api_key)
+        ak = ''
+        self.client = OpenAI(ak)
         cur_path =os.getcwd()
         root_path = '/'.join(cur_path.split("/")[:-2])
 
