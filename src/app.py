@@ -142,26 +142,26 @@ class GradioApp:
         return comp
 
 
-    def gen_text(self,inputs, model_version='Qwen'):
+    def gen_text(self,inputs, LLM_version='Qwen'):
         # 设置前置prompt做限制
         prompts = "你是一个时尚服装行业的专家， 请回答下面问题,只罗列答案不要返回多余的词："
         # model= 'deepseek-r1:1.5b'
         # return call_LLM(inputs,prompts, model_version='llama3.2:latest')
-        return call_LLM(inputs,prompts, model_version=model_version)
+        return call_LLM(inputs,prompts, model_version=LLM_version)
     
     def text_module(self, title='文本生成', desc="AI生成关键词"):
         comp = gr.Interface(
                 fn= self.gen_text,
-                inputs=['textbox', gr.Dropdown(['deepseek-r1:1.5b', 'llama3.2:latest','Qwen'])],
-                outputs=["textbox"],
+                inputs=[gr.Textbox(label="文本输入"), gr.Dropdown(['deepseek-r1:1.5b', 'llama3.2:latest','Qwen'], label='模型选择')],
+                outputs=[gr.Textbox(label="结果输出")],
                 title=title,
                 description=desc,
                 theme="huggingface",
                 examples=[
-                    ["Use one sentence tell a joy"
-                     ,"哪些款式的女装比较潮流， 请列出10个女装品类", 
-                     "生成10个衣服类目并列出来"],
-                ],
+                    ["列出2024年最受欢迎的10个衣服品牌","llama3.2:latest"],
+                      ["哪些款式的女装比较潮流， 请列出10个女装品类","Qwen"],
+                      ["随机生成10个衣服类目并列出来","Qwen"]],
+                cache_examples=True,
             )
         return comp
     
