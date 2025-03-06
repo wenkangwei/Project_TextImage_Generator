@@ -85,7 +85,8 @@ class GradioApp:
         # prompts
         #others
         self.config=config
-        self.image_dir = "/mnt/d/workspace/projects/Project_TextImage_Generator/examples"
+        # self.image_dir = "/mnt/d/workspace/projects/Project_TextImage_Generator/examples"
+        self.image_dir = "../examples"
         self.model_dir = os.path.join(self.image_dir, "models")
         self.clothes_dir = os.path.join(self.image_dir, "clothes")
         self.reference_dir = os.path.join(self.image_dir, "references")
