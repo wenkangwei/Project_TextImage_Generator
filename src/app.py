@@ -77,7 +77,7 @@ def call_LLM(inputs, prompts= '你是一个时尚服装行业的专家， 请回
         return response['message']['content']
     else:
         return "LLM version is not supported yet."
-
+import os
 class GradioApp:
     def __init__(self,config=None):
         #config with info of 
@@ -85,7 +85,15 @@ class GradioApp:
         # prompts
         #others
         self.config=config
+        self.image_dir = "/mnt/d/workspace/projects/Project_TextImage_Generator/examples"
+        self.model_dir = os.path.join(self.image_dir, "models")
+        self.clothes_dir = os.path.join(self.image_dir, "clothes")
+        self.reference_dir = os.path.join(self.image_dir, "references")
+        self.model_files = [os.path.join(self.model_dir, f) for f in os.listdir(self.model_dir)]
+        self.clothes_files = [os.path.join(self.clothes_dir, f) for f in os.listdir(self.clothes_dir)]
+        self.reference_files = [os.path.join(self.reference_dir, f) for f in os.listdir(self.reference_dir)]
         pass
+    
     
     def test_image_func(self, input_image, filter_mode='sepia'):
         def filter_image(input_image, filter_mode='sepia'):
@@ -111,13 +119,13 @@ class GradioApp:
         filtered_image = filter_image(input_image, filter_mode)
         return res, filtered_image
     
-    def dress_up_func(self, model_images, cloths_images, prompts):
+    def dress_up_func(self, model_images, cloths_images, prompts, similarity):
         # 请求GPT response
-        return model_images, cloths_images
+        return "dress_up_func output",[(model_images, "模特"), (cloths_images, "衣服")]*5
 
-    def update_model_func(self, model_images, cloths_images, prompts):
+    def update_model_func(self, model_images, cloths_images, prompts, similarity):
         # 请求GPT response
-        return model_images, cloths_images
+        return "update_model_func output", [(model_images, "模特"), (cloths_images, "衣服")]*5
     
     def image_module(self, mode='dress_up', title='image_module', desc=''):
         if mode == 'dress_up':
@@ -128,19 +136,76 @@ class GradioApp:
             func = self.update_model_func
         else:
             func = self.dress_up_func
+        examples = []
+        for i, (c, m) in enumerate( zip(self.clothes_files, self.model_files) ):
+            examples.append([c, m, 'sepia', 0.6] )
         comp = gr.Interface(
                 fn= func,
-                inputs=['image', 'image', gr.Dropdown(['sepia', 'grayscale'])],
-                outputs=["textbox",'image'],
+                inputs=[gr.Image(label='衣服', scale=1, height=300),
+                        gr.Image(label='模特',scale=1, height=300),
+                        gr.Dropdown(['sepia', 'grayscale']),
+                        gr.Slider(0, 10, value=5, label="相似度控制", info="similarity between 2 and 20")],
+                outputs=[gr.Textbox(label="文本输出"),
+                         gr.Gallery(label='图片展示',height='auto',columns=3)
+                         ],
                 title=title,
                 description=desc,
                 theme="huggingface",
-                examples=[
-                    ["/mnt/c/Users/wwk/Pictures/OIP.jpg", "sepia"],
-                ],
+                examples=examples,
             )
         return comp
+    
+    def image_module_v2(self, mode='dress_up', title='image_module', desc=''):
+        def upload_file(files, current_files):
+            file_paths = current_files + [file.name for file in files]
+            return file_paths
 
+        def gen_images(clothes_img, model_img):
+            new_images = []
+            #call LLM/SD here
+            new_images.append(clothes_img)
+            new_images.append(model_img)
+            return new_images
+        
+        def clear_images():
+            return []
+        def slider_func(val):
+            print("slider value: ", val)
+
+
+        if mode == 'dress_up':
+            # 模特试衣
+            func = self.dress_up_func
+        elif mode == 'update_model':
+            # 更新模特
+            func = self.update_model_func
+        else:
+            func = self.dress_up_func
+
+        with gr.Blocks() as demo:
+            # first row
+            with gr.Row():
+                # first col -> input column
+                with gr.Column():
+                    model_image=gr.Image(label="模特图片",type='pil', height=None, width=None)
+                    clothes_image=gr.Image(label="衣服图片",type='pil', height=None, width=None)
+                    upload_button = gr.UploadButton("选择图片上传 (Upload Photos)", file_types=["image"], file_count="multiple")
+                    generate_img_button = gr.Button("生成图片")
+                    slider = gr.Slider(0, 10, value=5, label="相似度控制", info="similarity between 2 and 20")
+                    clear_button = gr.Button("清空图片 (Clear Photos)")
+                    
+                    # analyze_button = gr.Button("显示图片信息 (Show Image Info)")
+                    input_image_gallery = gr.Gallery(type='pil', label='输入图片列表 (Photos)', height=250, columns=4, visible=True)
+                # second col-> output column
+                with gr.Column():
+                    image_gallery = gr.Gallery(type='pil', label='图片列表 (Photos)', height=250, columns=4, visible=True)
+            # user_images = gr.State([])
+            # upload_button.upload(upload_file, inputs=[upload_button, user_images], outputs=image_gallery)
+            slider.input(fn=slider_func)
+            generate_img_button.click(gen_images,inputs=[clothes_image, model_image], outputs= image_gallery)
+            clear_button.click(fn=clear_images, inputs=None, outputs=image_gallery)
+            # analyze_button.click(get_image_info, inputs=image_gallery, outputs=analysis_output)
+            return demo
 
     def gen_text(self,inputs, LLM_version='Qwen'):
         # 设置前置prompt做限制
@@ -171,10 +236,10 @@ class GradioApp:
         tab_interface_ls['AI生词'] = self.text_module()
 
         # module 2: 服装上身
-        tab_interface_ls['服装上身'] = self.image_module('dress_up')
+        tab_interface_ls['服装搭配'] = self.image_module('dress_up', title="服装搭配")
            
         # module 3: 换模特
-        tab_interface_ls['更换模特'] = self.image_module('update_model')
+        tab_interface_ls['更换模特'] = self.image_module('update_model', title="更换模特")
 
         comp = gr.TabbedInterface(
                 list(tab_interface_ls.values()), list(tab_interface_ls.keys())
