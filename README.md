@@ -23,3 +23,5 @@
 - ollama 大模型部署: https://github.com/ollama/ollama-python
 - gradio gallery参考 https://www.gradio.app/docs/gradio/gallery
 - 绘蛙 https://www.ihuiwa.com/workspace/ai-image/one-shot
+- Stable-diffusion-webui https://github.com/AlUlkesh/stable-diffusion-webui-images-browser/blob/main/scripts/image_browser.py
+- kaggle stable diffusion: https://www.kaggle.com/code/wenkangw/stable-diffusion-webui-kaggle/edit
