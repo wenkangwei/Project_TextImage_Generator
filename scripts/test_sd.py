@@ -6,23 +6,23 @@
 # 
 # 
 
-from openai import OpenAI
+# from openai import OpenAI
 
-model_id = 'tensorart/stable-diffusion-3.5-medium-turbo'
+# model_id = 'tensorart/stable-diffusion-3.5-medium-turbo'
 
-client = OpenAI(
-    base_url='https://ms-fc-de5ab47a-a2b4.api-inference.modelscope.cn/v1',
-    api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
-)
+# client = OpenAI(
+#     base_url='https://ms-fc-de5ab47a-a2b4.api-inference.modelscope.cn/v1',
+#     api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
+# )
 
-response=client.chat.completions.create(
-    model=model_id,
-    messages=[{"role":"user", "content":"画一只猫的图片？"}],
-    stream=True
-)
+# response=client.chat.completions.create(
+#     model=model_id,
+#     messages=[{"role":"user", "content":"画一只猫的图片？"}],
+#     stream=True
+# )
 
-for chunk in response:
-    print(chunk.choices[0].delta.content, end='', flush=True)
+# for chunk in response:
+#     print(chunk.choices[0].delta.content, end='', flush=True)
 
 
 
@@ -53,3 +53,17 @@ for chunk in response:
 #    width=768 
 # ).images[0]
 # image.save("./test1.webp")
+
+
+
+
+import gradio as gr
+
+with gr.Blocks(fill_height=True) as demo:
+    with gr.Row():
+        gr.Markdown("# Inference Provider")
+        gr.Markdown("This Space showcases the black-forest-labs/FLUX.1-dev model, served by the fal-ai API. Sign in with your Hugging Face account to use this API.")
+        button = gr.LoginButton("Sign in")
+    gr.load("models/black-forest-labs/FLUX.1-dev", accept_token=button, provider="fal-ai")
+    
+demo.launch()
