@@ -17,6 +17,13 @@
 - [ ] 图片生成
 - [ ] 用户登录
 
+# 问题
+1. 网上的FLUX 对中文理解效果不好, 而且生成图片速度慢
+2. 使用本地服务器+ 线上url请求远程模型形式 速度会比较慢
+3. huggingface上面的部署的开源模型请求 在国内会被禁, 请求速度会很慢,需要梯子
+4. 国内云服务收费比较贵, 现在用modelscope的开发环境使用, 但是对拉取huggingface模型不太友好,连不上海外网络
+
+
 # 参考链接
 - gradio official doc: https://www.gradio.app/guides/connecting-to-a-database
 - gradio 构建用户登录界面： https://blog.csdn.net/lsqingfeng/article/details/132599955

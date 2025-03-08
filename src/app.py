@@ -28,7 +28,7 @@ import requests
 import ollama
 from ollama import chat
 from ollama import ChatResponse
-
+import random
 # ollama.pull("deepseek-r1:1.5b")
 # print( 'ollama result:',ollama.list())
 # response: ChatResponse = chat(model='deepseek-r1:1.5b', messages=[
@@ -41,60 +41,125 @@ from ollama import ChatResponse
 # # or access fields directly from the response object
 # print(response.message.content)
 
-def call_LLM(inputs, prompts= '你是一个时尚服装行业的专家， 请回答下面问题：', model_version = 'Qwen'):
-    inputs = prompts + ' ' + inputs
-    if model_version=="Qwen":
-        from openai import OpenAI
 
-        model_id = 'Qwen/Qwen2.5-3B-Instruct-GGUF'
-
-        client = OpenAI(
-            base_url='https://ms-fc-2ea3820b-8c19.api-inference.modelscope.cn/v1',
-            api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
-        )
-
-        response=client.chat.completions.create(
-            model=model_id,
-            messages=[{"role":"user", "content":inputs}],
-            stream=True
-        )
-
-        res= []
-        for chunk in response:
-            # print(chunk.choices[0].delta.content, end='', flush=True)
-            res.append(chunk.choices[0].delta.content)
-        return "".join(res)
-    elif model_version in ['deepseek-r1:1.5b', 'llama3.2:latest']: 
-        
-        # model= 'deepseek-r1:1.5b'
-        # model = 'llama3.2:latest'
-        response: ChatResponse = chat(model= model_version, messages=[
-        {
-            'role': 'user',
-            'content': prompts + " " + inputs,
-        },
-        ])
-        return response['message']['content']
-    else:
-        return "LLM version is not supported yet."
 import os
+os.environ['HF_TOKEN']="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"
+
+from huggingface_hub import InferenceClient
+class MyAgent:
+    def __init__(self,hf_token):
+        self.hf_token=hf_token
+        self.client = InferenceClient(
+            token=self.hf_token
+        )
+        pass
+
+    def call_LLM(self, inputs, prompts= '你是一个时尚服装行业的专家， 请回答下面问题：', model_version = 'Qwen'):
+        inputs = prompts + ' ' + inputs
+        if model_version=="Qwen":
+            from openai import OpenAI
+
+            model_id = 'Qwen/Qwen2.5-3B-Instruct-GGUF'
+
+            client = OpenAI(
+                base_url='https://ms-fc-2ea3820b-8c19.api-inference.modelscope.cn/v1',
+                api_key='e37bfdad-0f6a-46c2-a7bf-f9dc365967e3'
+            )
+
+            response=client.chat.completions.create(
+                model=model_id,
+                messages=[{"role":"user", "content":inputs}],
+                stream=True
+            )
+
+            res= []
+            for chunk in response:
+                # print(chunk.choices[0].delta.content, end='', flush=True)
+                res.append(chunk.choices[0].delta.content)
+            return "".join(res)
+        elif model_version in ['deepseek-r1:1.5b', 'llama3.2:latest']: 
+            # model= 'deepseek-r1:1.5b'
+            # model = 'llama3.2:latest'
+            response: ChatResponse = chat(model= model_version, messages=[
+            {
+                'role': 'user',
+                'content': prompts + " " + inputs,
+            },
+            ])
+            return response['message']['content']
+        else:
+            return "LLM version is not supported yet."
+        
+    def text_to_image(self, prompt="Astronaut riding a horse",
+                      model_version="black-forest-labs/FLUX.1-schnell",
+                      negative_prompt=None,
+                      width=None,
+                      height=None,
+                      num_inference_steps=None,
+                      guidance_scale=None):
+        # output is a PIL.Image object
+        image = self.client.text_to_image(
+            prompt,
+            negative_prompt=negative_prompt,
+            height=height,
+            width=width,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            model=model_version
+        )
+        return image
+    
+    def image_to_image(self, image,
+                       prompt =None,
+                       negative_prompt = None,
+                       height = None,
+                       width = None,
+                       num_inference_steps = None,
+                       guidance_scale = None,
+                       model_version = "black-forest-labs/FLUX.1-schnell"):
+        # Coming Soon
+        self.client.image_to_image(image,
+                       prompt,
+                       negative_prompt,
+                       height,
+                       width,
+                       num_inference_steps,
+                       guidance_scale,
+                       model = model_version)
+        
+
+
+import os
+import subprocess
 class GradioApp:
     def __init__(self,config=None):
         #config with info of 
         # model version
         # prompts
         #others
+        self.agent = MyAgent(os.environ['HF_TOKEN'])
+        self.config=config
+        MyAgent
         self.config=config
         # self.image_dir = "/mnt/d/workspace/projects/Project_TextImage_Generator/examples"
         self.image_dir = "./examples"
+        self.init_folder()
+        pass
+    def init_folder(self, ):
+        self.image_root = os.path.join(self.image_dir, "results") 
+        if not os.path.exists(self.image_root ):
+            os.mkdir(self.image_root)
+        else:
+            # os.removedirs(self.image_root)
+            subprocess.getstatusoutput(f"rm -rf {self.image_root}")
+            os.mkdir(self.image_root)
+            
         self.model_dir = os.path.join(self.image_dir, "models")
         self.clothes_dir = os.path.join(self.image_dir, "clothes")
         self.reference_dir = os.path.join(self.image_dir, "references")
         self.model_files = [os.path.join(self.model_dir, f) for f in os.listdir(self.model_dir)]
         self.clothes_files = [os.path.join(self.clothes_dir, f) for f in os.listdir(self.clothes_dir)]
         self.reference_files = [os.path.join(self.reference_dir, f) for f in os.listdir(self.reference_dir)]
-        pass
-    
     
     def test_image_func(self, input_image, filter_mode='sepia'):
         def filter_image(input_image, filter_mode='sepia'):
@@ -151,7 +216,7 @@ class GradioApp:
                          ],
                 title=title,
                 description=desc,
-                theme="huggingface",
+                # theme="huggingface",
                 examples=examples,
             )
         return comp
@@ -213,8 +278,32 @@ class GradioApp:
         prompts = "你是一个时尚服装行业的专家， 请回答下面问题,只罗列答案不要返回多余的词："
         # model= 'deepseek-r1:1.5b'
         # return call_LLM(inputs,prompts, model_version='llama3.2:latest')
-        return call_LLM(inputs,prompts, model_version=LLM_version)
+        return self.agent.call_LLM(inputs,prompts, model_version=LLM_version)
     
+    def gen_text2Image(self, inputs, model_version, num_images, num_inference_steps):
+        images = []
+        model_version = "black-forest-labs/" + model_version
+        # valid_version = ["black-forest-labs/FLUX.1-schnell", "black-forest-labs/FLUX.1-dev"]
+        num_images = int(num_images)
+        print("get num_images: ", num_images)
+        for i in range(num_images):
+            seed = random.randint(0, 100)
+            prompts = f"given a random seed: {seed}, generate image with Prompts:"
+            prompts += inputs
+            # if model_version in valid_version:
+            image = self.agent.text_to_image(prompt=prompts, width=8*3*10,height=8*4*10, num_inference_steps=None, model_version=model_version)
+            image_name = inputs+f"_{i}.png"
+            print(f"Generated image: {image_name} ")
+            # images.append(image)
+            image_path = os.path.join(self.image_root, image_name)
+            print("Saving file: ", image_path)
+            image.save(image_path)
+            # images.append((image, image_name))
+            images.append((image_path, image_name))
+        # print()
+        return images
+
+
     def text_module(self, title='文本生成', desc="AI生成关键词"):
         comp = gr.Interface(
                 fn= self.gen_text,
@@ -231,10 +320,32 @@ class GradioApp:
             )
         return comp
     
+
+    def text_2_image_module(self, title='文生图', desc="AI生成关键词"):
+        comp = gr.Interface(
+                fn= self.gen_text2Image,
+                inputs=[gr.Textbox(label="文本输入"),
+                        gr.Dropdown(["FLUX.1-schnell", "FLUX.1-dev"], label='模型选择'),
+                        gr.Textbox(label="生成图片数量"),
+                        gr.Slider(0, 10, value=1, label="推理步数", info="similarity between 1 and 10")],
+                outputs=[gr.Gallery(label='图片展示',height='auto',columns=3)],
+                title=title,
+                description=desc,
+                theme="huggingface",
+                examples=[
+                    ["a girl in long beautiful white dress","FLUX.1-dev",1, 2],
+                      ["生成冬装服装搭配","FLUX.1-dev",3,3],
+                      ],
+                cache_examples=False,
+            )
+        return comp
+
     def generate_interface(self,):
         tab_interface_ls = {}
         # module 1: 生词
         tab_interface_ls['AI生词'] = self.text_module()
+        # module 2： 文生图
+        tab_interface_ls['文生图'] = self.text_2_image_module(title='文生图')
 
         # module 2: 服装上身
         tab_interface_ls['服装搭配'] = self.image_module('dress_up', title="服装搭配")
