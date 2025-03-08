@@ -581,7 +581,7 @@ class GradioApp:
                     result = [(gen_image, 'result')]
                 except Exception as e:
                     print("Error: ", e)
-                    msg = "Error: " + e
+                    msg = "Error: " + str(e)
                     result = [(current_images_1[0], 'result')]
 
                 
