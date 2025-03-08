@@ -40,7 +40,7 @@ from io import BytesIO
 
 
 os.environ['HF_TOKEN']="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"
-os.environ["STABLITY_KEY"]="sk-RHtzI49J5ke7u1NjaoR05cmvBYKEzHWIf9xRizu5oZ0ylu18"
+os.environ["STABILITY_KEY"]="sk-RHtzI49J5ke7u1NjaoR05cmvBYKEzHWIf9xRizu5oZ0ylu18"
 from huggingface_hub import InferenceClient
 class MyAgent:
     def __init__(self,hf_token):
