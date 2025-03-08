@@ -602,7 +602,7 @@ class GradioApp:
                     role_input = gr.Textbox(value="你是一个时尚服装行业的专家,请回答下面问题",label="输入角色", placeholder="输入要添加的内容...")
                     task_input = gr.Textbox(value= "答案要求:只罗列答案不要返回多余的词,并以列表形式返回, 每条列表格式如下:<序号>.<答案>", label="输入任务", placeholder="输入要添加的内容...")
                     user_input = gr.Textbox(value= "列出2024年最受欢迎的10个衣服品牌", label="输入任务", placeholder="输入要添加的内容...")
-                    model_options = gr.Dropdown(value='llama3.2:latest',  choices=['deepseek-r1:1.5b', 'llama3.2:latest','Qwen'], label='模型选择')
+                    model_options = gr.Dropdown(value='Qwen',  choices=['deepseek-r1:1.5b', 'llama3.2:latest','Qwen'], label='模型选择')
                     add_btn = gr.Button("➕ 生成文本", variant="primary")
                     clear_btn = gr.Button("重置数据文件", variant="primary")
                 
