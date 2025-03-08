@@ -563,7 +563,7 @@ class GradioApp:
                 selected_2 = [current_images_2[i] for i in selected_indices_2]
                 
                 # call LLM to generate image
-                result =  [(current_images_1[0], 'result')]
+                result =  [(selected_1[-1], 'result')]
                 msg= f"""
                 已处理 {len(selected_1)} {len(selected_2)} 张图片\n\n Prompt: {prompt}
                 """
@@ -582,7 +582,7 @@ class GradioApp:
                 except Exception as e:
                     print("Error: ", e)
                     msg = "Error: " + str(e)
-                    result = [(current_images_1[0], 'result')]
+                    result = [(selected_1[-1], 'result')]
 
                 
                 return result, msg
