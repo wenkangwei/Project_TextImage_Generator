@@ -717,6 +717,7 @@ class GradioApp:
                 image_path = current_image_states[index][0]
                 # current = selected_indices.value.copy()
                 res= { 'background': None, 'layers':[image_path],  'composite':None}
+                print("res: ", res)
                 return res
         
             def predict(im):
