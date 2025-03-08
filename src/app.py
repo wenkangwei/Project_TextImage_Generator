@@ -564,6 +564,9 @@ class GradioApp:
                 
                 # call LLM to generate image
                 result =  [(current_images_1[0], 'result')]
+                msg= f"""
+                已处理 {len(selected_1)} {len(selected_2)} 张图片\n\n Prompt: {prompt}
+                """
                 try:
                     input_image =  "/generate a sexy red women dress_0.png" if not selected_1[-1] else selected_1[-1]
                     print("input_image: ", input_image)
@@ -578,11 +581,10 @@ class GradioApp:
                     result = [(gen_image, 'result')]
                 except Exception as e:
                     print("Error: ", e)
+                    msg = "Error: " + e
                     result = [(current_images_1[0], 'result')]
 
-                msg= f"""
-                已处理 {len(selected_1)} {len(selected_2)} 张图片\n\n Prompt: {prompt}
-                """
+                
                 return result, msg
 
         
