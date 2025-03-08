@@ -32,3 +32,6 @@
 - 绘蛙 https://www.ihuiwa.com/workspace/ai-image/one-shot
 - Stable-diffusion-webui https://github.com/AlUlkesh/stable-diffusion-webui-images-browser/blob/main/scripts/image_browser.py
 - kaggle stable diffusion: https://www.kaggle.com/code/wenkangw/stable-diffusion-webui-kaggle/edit
+- stable-diffusion
+    - 图生图参考: https://colab.research.google.com/github/stability-ai/stability-sdk/blob/main/nbs/SD3_API.ipynb#scrollTo=gj4YsYB8J4a7
+    - stable diffusion 官网: https://platform.stability.ai/account/keys 
