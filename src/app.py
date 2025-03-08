@@ -568,7 +568,7 @@ class GradioApp:
                 已处理 {len(selected_1)} {len(selected_2)} 张图片\n\n Prompt: {prompt}
                 """
                 try:
-                    input_image =  "/generate a sexy red women dress_0.png" if not selected_1[-1] else selected_1[-1]
+                    input_image =  "./generate a sexy red women dress_0.png" if not selected_1[-1] else selected_1[-1]
                     print("input_image: ", input_image)
                     gen_image = self.agent.image2image( 
                         result_path = self.image_result,
@@ -740,7 +740,7 @@ class GradioApp:
                 image.save(img_path)
                 current_image_states.append(img_path)
                 print("append_img_gallery: ",current_image_states)
-                return current_image_states
+                return current_image_states, current_image_states
 
             
             t2i_gallery.select(
@@ -760,7 +760,7 @@ class GradioApp:
             save_im_btn.click(
                 fn=append_img_gallery,
                 inputs=[im_name_text ,im_preview, current_image_states],
-                outputs=i2i_gallery_1,
+                outputs=[i2i_gallery_1, current_image_states],
                 show_progress=False
             )
 
@@ -783,7 +783,7 @@ class GradioApp:
 
             process_btn.click(
                 fn=process_selected_images,
-                inputs=[i2i_prompt_input, selected_indices_1, current_image_states_1,selected_indices_2, current_image_states_2 ],
+                inputs=[i2i_prompt_input, selected_indices_1, current_image_states,selected_indices_2, current_image_states],
                 outputs=[i2i_gallery_output, status]
             )
 
