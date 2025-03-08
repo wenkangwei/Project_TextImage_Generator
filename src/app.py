@@ -567,7 +567,7 @@ class GradioApp:
                 try:
                     input_image =  "/generate a sexy red women dress_0.png" if not selected_1[-1] else selected_1[-1]
                     print("input_image: ", input_image)
-                    gen_image = self.agent.image2image(self, 
+                    gen_image = self.agent.image2image( 
                         result_path = self.image_result,
                         image = input_image,
                         prompt = prompt,
