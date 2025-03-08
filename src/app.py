@@ -60,9 +60,10 @@ class MyAgent:
     #@title Define functions
 
     def send_generation_request(self, host,params):
+        k = os.environ["STABILITY_KEY"]
         headers = {
             "Accept": "image/*",
-            "Authorization": f"Bearer {os.environ["STABILITY_KEY"]}"
+            "Authorization": f"Bearer {k}"
         }
 
         # Encode parameters
