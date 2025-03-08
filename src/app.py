@@ -40,7 +40,7 @@ from io import BytesIO
 
 
 os.environ['HF_TOKEN']="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"
-
+os.environ["STABLITY_KEY"]="sk-RHtzI49J5ke7u1NjaoR05cmvBYKEzHWIf9xRizu5oZ0ylu18"
 from huggingface_hub import InferenceClient
 class MyAgent:
     def __init__(self,hf_token):
@@ -48,7 +48,99 @@ class MyAgent:
         self.client = InferenceClient(
             token=self.hf_token
         )
+
+        #@title Connect to the Stability API
+
+        import getpass
+        # @markdown To get your API key visit https://platform.stability.ai/account/keys
+        # STABILITY_KEY = getpass.getpass('Enter your API Key')
+
         pass
+
+    #@title Define functions
+
+    def send_generation_request(self, host,params):
+        headers = {
+            "Accept": "image/*",
+            "Authorization": f"Bearer {os.environ["STABILITY_KEY"]}"
+        }
+
+        # Encode parameters
+        files = {}
+        image = params.pop("image", None)
+        mask = params.pop("mask", None)
+        if image is not None and image != '':
+            files["image"] = open(image, 'rb')
+        if mask is not None and mask != '':
+            files["mask"] = open(mask, 'rb')
+        if len(files)==0:
+            files["none"] = ''
+
+        # Send request
+        print(f"Sending REST request to {host}...")
+        response = requests.post(
+            host,
+            headers=headers,
+            files=files,
+            data=params
+        )
+        if not response.ok:
+            raise Exception(f"HTTP {response.status_code}: {response.text}")
+
+        return response
+
+
+    def image2image(self, 
+                    result_path = './examples/results/',
+                    image = "/generate a sexy red women dress_0.png",
+                    prompt = "a girl is laugthing",
+                    negative_prompt = "",
+                    seed = 0,
+                    output_format = "jpeg",
+                    strength = 0.75
+        ):
+        #@title SD3.5 Large
+        #@markdown - Drag and drop image to file folder on left
+        #@markdown - Right click it and choose Copy path
+        #@markdown - Paste that path into image field below
+        #@markdown <br><br>
+
+        host = f"https://api.stability.ai/v2beta/stable-image/generate/sd3"
+
+        params = {
+            "image" : image,
+            "prompt" : prompt,
+            "negative_prompt" : negative_prompt,
+            "strength" : strength,
+            "seed" : seed,
+            "output_format": output_format,
+            "model" : "sd3.5-large",
+            "mode" : "image-to-image"
+        }
+
+        response = self.send_generation_request(
+            host,
+            params
+        )
+
+        # Decode response
+        output_image = response.content
+        finish_reason = response.headers.get("finish-reason")
+        seed = response.headers.get("seed")
+
+        # Check for NSFW classification
+        if finish_reason == 'CONTENT_FILTERED':
+            raise Warning("Generation failed NSFW classifier")
+
+        # Save and display result
+        generated =os.path.join(result_path, f"generated_{seed}.{output_format}") 
+        with open(generated, "wb") as f:
+            f.write(output_image)
+        print(f"Saved image {generated}")
+        print("Result image:")
+        return generated
+
+
 
     def call_LLM(self, inputs, prompts= '你是一个时尚服装行业的专家， 请回答下面问题：', model_version = 'Qwen'):
         inputs = prompts + ' ' + inputs
@@ -470,10 +562,27 @@ class GradioApp:
                 selected_2 = [current_images_2[i] for i in selected_indices_2]
                 
                 # call LLM to generate image
+                result =  [(current_images_1[0], 'result')]
+                try:
+                    input_image =  "/generate a sexy red women dress_0.png" if not selected_1[-1] else selected_1[-1]
+                    print("input_image: ", input_image)
+                    gen_image = self.agent.image2image(self, 
+                        result_path = self.image_result,
+                        image = input_image,
+                        prompt = prompt,
+                        negative_prompt = "",
+                        seed =  random.randint(0, 100),
+                        output_format = "jpeg",
+                        strength = 0.75)
+                    result = [(gen_image, 'result')]
+                except Exception as e:
+                    print("Error: ", e)
+                    result = [(current_images_1[0], 'result')]
+
                 msg= f"""
                 已处理 {len(selected_1)} {len(selected_2)} 张图片\n\n Prompt: {prompt}
                 """
-                return [(current_images_1[0], 'result')], msg
+                return result, msg
 
         
         with gr.Blocks() as demo:
